@@ -46,7 +46,8 @@
 
   function resetBoxesToLoading() {
     Object.values(boxes).forEach((el) => {
-      el.innerHTML = '<span class="loading">Searching…</span>';
+      el.innerHTML =
+        '<span class="loading"><span class="spinner" aria-hidden="true"></span>Searching…</span>';
     });
   }
 
