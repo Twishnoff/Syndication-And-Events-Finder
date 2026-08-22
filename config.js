@@ -1,4 +1,5 @@
-// Fill this in after you deploy the Cloudflare Worker for this tool
-// (a new route on the same Worker/account used by Customer-Intelligence works fine).
-// Example: "https://customer-overview-dashboard.YOUR-SUBDOMAIN.workers.dev/api/syndication"
-const SYNDICATION_API_URL = "REPLACE_WITH_YOUR_WORKER_URL";
+   // Fill this in after you deploy the Worker in backend/ (see backend/README.md).
+   // It's a new Worker on the same Cloudflare account as Customer-Intelligence,
+   // so this URL will look like:
+   // "https://syndication-event-finder.YOUR-SUBDOMAIN.workers.dev"
+   const SYNDICATION_API_URL = "https://syndication-event-finder.tyler-wishnoff.workers.dev";
