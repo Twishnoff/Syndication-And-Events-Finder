@@ -176,7 +176,6 @@ button:disabled {
 
 .box-body table {
   width: 100%;
-  table-layout: fixed;
   border-collapse: collapse;
   font-size: 0.85rem;
   color: var(--text);
@@ -186,8 +185,6 @@ button:disabled {
   text-align: left;
   padding: 7px 8px;
   border-bottom: 1px solid var(--border);
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 
 .box-body td:first-child, .box-body th:first-child {
