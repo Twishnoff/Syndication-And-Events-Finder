@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="robots" content="noindex, nofollow, noarchive, nosnippet" />
+<title>Syndication &amp; Event Finder</title>
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="page">
+    <header class="page-header">
+      <h1>Syndication &amp; Event Finder</h1>
+      <p class="subtitle">Enter your target job titles and your company URL to find the events, meetups, newsletters, influencers, publications, syndication platforms, and social channels most likely to reach your audience.</p>
+    </header>
+
+    <section class="input-panel">
+      <form id="finder-form" autocomplete="off">
+        <div class="input-row">
+          <label class="field">
+            <span class="field-label">Your email</span>
+            <input type="email" id="email-input" placeholder="you@example.com" />
+          </label>
+          <label class="field field-wide">
+            <span class="field-label">Your Company URL</span>
+            <input type="text" id="url-input" placeholder="Company URL" />
+          </label>
+        </div>
+
+        <div class="input-columns">
+          <div class="input-column">
+            <label class="field">
+              <span class="field-label">Job Title <span class="required-mark">(required)</span></span>
+              <input type="text" id="job-title-1" placeholder="e.g. Data Engineer" />
+            </label>
+            <label class="field">
+              <span class="field-label">Job Title <span class="optional-mark">(optional)</span></span>
+              <input type="text" id="job-title-2" placeholder="Optional" />
+            </label>
+            <label class="field">
+              <span class="field-label">Job Title <span class="optional-mark">(optional)</span></span>
+              <input type="text" id="job-title-3" placeholder="Optional" />
+            </label>
+          </div>
+          <div class="input-column">
+            <label class="field">
+              <span class="field-label">Specific Industry <span class="optional-mark">(optional)</span></span>
+              <input type="text" id="industry-input" placeholder="e.g. Oil and Gas" />
+            </label>
+          </div>
+        </div>
+
+        <div class="submit-row">
+          <button type="submit" id="submit-btn">Search</button>
+        </div>
+      </form>
+      <p id="alert-message" class="alert-error" hidden></p>
+    </section>
+
+    <section class="results-grid">
+      <div class="dash-box" id="box-events">
+        <h2>Events and Tradeshows</h2>
+        <div class="box-body" data-empty="No Data Collected">No Data Collected</div>
+      </div>
+
+      <div class="dash-box" id="box-meetups">
+        <h2>Smaller Group Events</h2>
+        <div class="box-body" data-empty="No Data Collected">No Data Collected</div>
+      </div>
+
+      <div class="dash-box" id="box-newsletters">
+        <h2>Newsletters</h2>
+        <div class="box-body" data-empty="No Data Collected">No Data Collected</div>
+      </div>
+
+      <div class="dash-box" id="box-influencers">
+        <h2>Influencers</h2>
+        <div class="box-body" data-empty="No Data Collected">No Data Collected</div>
+      </div>
+
+      <div class="dash-box" id="box-publications">
+        <h2>Publications</h2>
+        <div class="box-body" data-empty="No Data Collected">No Data Collected</div>
+      </div>
+
+      <div class="dash-box" id="box-syndication">
+        <h2>Other Syndication Platforms</h2>
+        <div class="box-body" data-empty="No Data Collected">No Data Collected</div>
+      </div>
+
+      <div class="dash-box dash-box--centered" id="box-social">
+        <h2>Social Media and Blogs</h2>
+        <div class="box-body" data-empty="No Data Collected">No Data Collected</div>
+      </div>
+    </section>
+
+    <div class="pdf-row">
+      <button type="button" id="save-pdf-btn">Create PDF</button>
+    </div>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="config.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
