@@ -1,0 +1,11 @@
+name = "syndication-event-finder"
+main = "worker.js"
+compatibility_date = "2024-11-01"
+
+# Non-secret vars can go here, e.g.:
+# [vars]
+# ANTHROPIC_MODEL = "claude-sonnet-4-5-20250929"
+# ALLOWED_ORIGIN = "https://twishnoff.github.io"
+#
+# Secrets (ANTHROPIC_API_KEY, ALLOWED_EMAILS) should NOT be put here —
+# set them with `wrangler secret put` instead (see README.md).
