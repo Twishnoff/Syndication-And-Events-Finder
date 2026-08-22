@@ -5,8 +5,15 @@ folder. It takes `{ email, companyUrl, jobTitles, industry, today }`, uses
 Claude (with the web search tool) to research the company, find similar
 companies, and search the web for events, meetups, newsletters, influencers,
 publications, syndication platforms, and social/blog channels that match the
-target job titles and industry, then returns up to 15 ranked results per
-category.
+target job titles and industry (applying the exclusion rules and "job titles
+broaden, don't narrow" ranking logic from the Iteration 1 doc), then returns:
+
+- `companyName` — a human-readable name for the company at `companyUrl`.
+- `results` — every good candidate per category (not capped server-side; the
+  frontend caps each of its 7 boxes at 15).
+- `allResults` — the same items flattened into one list with a `channel`
+  field added, ordered by overall fit across every category — this feeds the
+  uncapped "All Results" box.
 
 This mirrors the same pattern as the Customer-Intelligence project's backend
 — a single-file Worker calling the Anthropic API — deployed on the same
@@ -77,9 +84,12 @@ curl -X POST https://syndication-event-finder.<your-subdomain>.workers.dev \
   }'
 ```
 
-You should get back `{"status":"ok","results":{...}}` with up to 15 items in
-each of the seven category arrays (some may be empty — that's expected and
-the frontend shows "No Relevant Results Found" for those).
+You should get back `{"status":"ok","companyName":"...","results":{...},"allResults":[...]}`.
+Category arrays in `results` may be empty — that's expected and the frontend
+shows "No Relevant Results Found" for those. `allResults` should contain the
+same items as `results` combined, just flattened with a `channel` label and
+reordered by overall fit (it's normal for it to interleave categories rather
+than group them).
 
 ## Notes / things to double-check
 
@@ -90,9 +100,12 @@ the frontend shows "No Relevant Results Found" for those).
   just set `ANTHROPIC_MODEL` as a var to avoid a code change for the model).
 - **Cost/latency.** Each request lets Claude make up to 12 web searches
   (`max_uses: 12` in `worker.js`) before answering, so a single search can
-  take a while and use a meaningful number of tokens. Lower `max_uses` if you
-  want faster/cheaper responses at the cost of thinner research, or raise the
-  Worker's CPU time limits on paid Cloudflare plans if you see timeouts.
+  take a while (around a minute is typical) and use a meaningful number of
+  tokens — the response also got larger with this iteration (uncapped
+  categories plus the flattened `allResults` list), so `max_tokens` was
+  raised to 16000 accordingly. Lower `max_uses` if you want faster/cheaper
+  responses at the cost of thinner research, or raise the Worker's CPU time
+  limits on paid Cloudflare plans if you see timeouts.
 - **Company snapshot fetch.** The worker does a best-effort raw GET of the
   company homepage to give Claude a head start; if the site blocks bots or
   requires JS to render, this snapshot may come back empty and Claude will

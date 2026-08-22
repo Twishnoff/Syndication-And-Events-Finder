@@ -57,6 +57,11 @@
       <p id="alert-message" class="alert-error" hidden></p>
     </section>
 
+    <section class="dash-box dash-box--all-results" id="box-all-results">
+      <h2>All Results</h2>
+      <div class="box-body" data-empty="No Data Collected">No Data Collected</div>
+    </section>
+
     <section class="results-grid">
       <div class="dash-box" id="box-events">
         <h2>Events and Tradeshows</h2>
@@ -95,12 +100,12 @@
     </section>
 
     <div class="pdf-row">
-      <button type="button" id="save-pdf-btn">Create PDF</button>
+      <button type="button" id="save-pdf-btn" disabled title="Run a search first">Create PDF</button>
     </div>
   </div>
 
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/5.0.8/jspdf.plugin.autotable.min.js"></script>
   <script src="config.js"></script>
   <script src="app.js"></script>
 </body>

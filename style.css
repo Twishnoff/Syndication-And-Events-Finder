@@ -142,6 +142,10 @@ button:disabled {
   text-align: center;
 }
 
+.dash-box--all-results {
+  margin-bottom: 18px;
+}
+
 .results-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -172,6 +176,7 @@ button:disabled {
 
 .box-body table {
   width: 100%;
+  table-layout: fixed;
   border-collapse: collapse;
   font-size: 0.85rem;
   color: var(--text);
@@ -181,10 +186,25 @@ button:disabled {
   text-align: left;
   padding: 7px 8px;
   border-bottom: 1px solid var(--border);
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.box-body td:last-child, .box-body th:last-child {
+.box-body td:first-child, .box-body th:first-child {
+  width: auto;
   word-break: break-word;
+  white-space: normal;
+}
+
+.box-body td.col-link, .box-body th.col-link {
+  width: 1%;
+  white-space: nowrap;
+}
+
+.box-body td.col-channel, .box-body th.col-channel {
+  width: 32%;
+  word-break: break-word;
+  white-space: normal;
 }
 
 .box-body th {
