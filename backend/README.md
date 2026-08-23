@@ -38,20 +38,24 @@ npx wrangler login
 ```bash
 npx wrangler secret put ANTHROPIC_API_KEY
 # paste your Anthropic API key when prompted
-
-npx wrangler secret put ALLOWED_EMAILS
-# paste the approved emails, comma or newline separated, e.g.:
-# tyler@example.com, teammate@example.com
 ```
 
-`ALLOWED_EMAILS` should match the list from the allow-list doc referenced in
-the spec. If you leave it unset (empty), the worker will skip the allow-list
-check and accept any syntactically valid email — only do that intentionally.
+That's the only secret you need to set for a fresh deploy. The approved-email
+allow-list now syncs live from the Google Doc instead of a secret — see
+"Email allow-list source" below — so you only need `wrangler secret put
+ALLOWED_EMAILS` if you want a manual fallback list (optional).
 
 ## 4. (Optional) non-secret settings
 
 Edit `wrangler.toml`'s `[vars]` section, or set them ad hoc:
 
+- `ALLOWED_EMAILS_DOC_ID` — the Google Doc ID of the live approved-emails
+  allow-list doc (already set to the current doc in `wrangler.toml`). See
+  "Email allow-list source" below.
+- `ALLOWED_EMAILS_CACHE_TTL_SECONDS` — how long (seconds) the Worker
+  edge-caches the doc fetch before re-reading it. Defaults to `300` (5
+  minutes) — so a doc edit takes up to 5 minutes to take effect, not
+  instantly. Lower it if you need faster propagation.
 - `ANTHROPIC_MODEL` — override the default model id in `worker.js`
   (`DEFAULT_MODEL_ID`) without redeploying code. Check
   https://docs.claude.com/en/docs/about-claude/models for current model ids.
@@ -110,6 +114,17 @@ than group them).
   company homepage to give Claude a head start; if the site blocks bots or
   requires JS to render, this snapshot may come back empty and Claude will
   rely on its own web search of the domain instead — it's not fatal.
-- **Email allow-list source.** The spec points at a Google Doc listing
-  approved emails. The worker can't read a live Google Doc, so copy that
-  list into the `ALLOWED_EMAILS` secret whenever it changes.
+- **Email allow-list source.** The Worker reads the approved-emails list
+  live from the Google Doc referenced in the spec, via `ALLOWED_EMAILS_DOC_ID`
+  in `wrangler.toml` — no manual copy/paste or redeploy needed when the list
+  changes. This only works because the doc's sharing is set to "Anyone with
+  the link: Viewer" (Drive lets it stay unlisted — not searchable, not
+  editable by strangers — while still being fetchable by the Worker without
+  authentication). If you ever change the doc's sharing to "Restricted," the
+  Worker will fail to read it and silently fall back to the `ALLOWED_EMAILS`
+  secret (empty by default, which means "allow-list check skipped, anyone
+  gets in") — so if access suddenly seems wrong for everyone, check the
+  doc's sharing settings first. Expected format in the doc: one email per
+  line (or comma-separated), case doesn't matter, blank lines are ignored.
+  A change to the doc takes effect within `ALLOWED_EMAILS_CACHE_TTL_SECONDS`
+  (default 5 minutes), not instantly.

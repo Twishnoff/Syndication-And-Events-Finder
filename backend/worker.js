@@ -17,10 +17,26 @@
  * shape the frontend (app.js) expects.
  *
  * Required secrets/vars (see README.md for `wrangler secret put` commands):
- *   ANTHROPIC_API_KEY  - required. Your Anthropic API key.
- *   ALLOWED_EMAILS     - required. Comma or newline separated list of the
- *                        approved emails (from the allow-list doc referenced
- *                        in the spec). Case-insensitive.
+ *   ANTHROPIC_API_KEY          - required. Your Anthropic API key.
+ *   ALLOWED_EMAILS_DOC_ID      - optional but recommended. The Google Doc ID
+ *                                of the live "approved emails" allow-list doc
+ *                                (the part of the URL between /d/ and /edit).
+ *                                The doc must be shared "Anyone with the
+ *                                link: Viewer" so the Worker can read it
+ *                                without auth. When set, the Worker fetches
+ *                                this doc on each request (edge-cached for
+ *                                ALLOWED_EMAILS_CACHE_TTL_SECONDS) so editing
+ *                                the doc takes effect live, with no redeploy
+ *                                and no `wrangler secret put` needed.
+ *   ALLOWED_EMAILS_CACHE_TTL_SECONDS
+ *                              - optional. How long (seconds) to edge-cache
+ *                                the doc fetch. Defaults to 300 (5 minutes).
+ *   ALLOWED_EMAILS             - optional fallback. Comma or newline
+ *                                separated list of approved emails, set as a
+ *                                secret. Used only if ALLOWED_EMAILS_DOC_ID
+ *                                isn't set, or if the live doc fetch fails
+ *                                (e.g. Google Docs is briefly unreachable).
+ *                                Case-insensitive.
  *   ANTHROPIC_MODEL    - optional. Defaults to DEFAULT_MODEL_ID below.
  *   ALLOWED_ORIGIN     - optional. Defaults to "*". Set to
  *                        "https://twishnoff.github.io" to lock CORS down
@@ -97,14 +113,61 @@ function validate({ email, companyUrl, jobTitles }) {
   return "Please Provide Required Information";
 }
 
-function parseAllowedEmails(env) {
-  const raw = env.ALLOWED_EMAILS || "";
+const DEFAULT_ALLOWED_EMAILS_CACHE_TTL_SECONDS = 300;
+
+function parseEmailListText(raw) {
   return new Set(
-    raw
+    (raw || "")
       .split(/[,\n]/)
       .map((e) => e.trim().toLowerCase())
       .filter(Boolean)
   );
+}
+
+// Fallback source: a manually-maintained secret (see README). Only consulted
+// if the live Google Doc fetch below is unconfigured or fails.
+function parseAllowedEmailsFromSecret(env) {
+  return parseEmailListText(env.ALLOWED_EMAILS);
+}
+
+// Primary source: live-fetches the public "approved emails" allow-list
+// Google Doc as plain text on each request. Cloudflare's `cf.cacheTtl`
+// forces edge caching for a short window (default 5 min, see
+// ALLOWED_EMAILS_CACHE_TTL_SECONDS) regardless of Google's own cache
+// headers, so most requests hit the Cloudflare edge cache rather than
+// Google Docs, while edits to the doc still show up without a redeploy.
+// Returns null (not an empty Set) when no doc is configured, so the caller
+// can distinguish "not configured" from "doc fetched but currently empty."
+async function fetchAllowedEmailsFromDoc(env) {
+  const docId = (env.ALLOWED_EMAILS_DOC_ID || "").trim();
+  if (!docId) return null;
+
+  const ttl = Number(env.ALLOWED_EMAILS_CACHE_TTL_SECONDS) || DEFAULT_ALLOWED_EMAILS_CACHE_TTL_SECONDS;
+  const url = `https://docs.google.com/document/d/${docId}/export?format=txt`;
+
+  const res = await fetch(url, {
+    redirect: "follow",
+    cf: { cacheTtl: ttl, cacheEverything: true },
+  });
+
+  if (!res.ok) {
+    throw new Error(`Allow-list doc export fetch failed with status ${res.status}`);
+  }
+
+  return parseEmailListText(await res.text());
+}
+
+// Resolves the current allow-list: prefer the live doc, fall back to the
+// ALLOWED_EMAILS secret if the doc isn't configured or the fetch fails.
+async function resolveAllowedEmails(env) {
+  try {
+    const fromDoc = await fetchAllowedEmailsFromDoc(env);
+    if (fromDoc !== null) return fromDoc;
+  } catch (err) {
+    // Doc unreachable, deleted, or no longer publicly shared — fall back
+    // below rather than failing every request.
+  }
+  return parseAllowedEmailsFromSecret(env);
 }
 
 function isValidEmailFormat(email) {
@@ -358,7 +421,7 @@ export default {
       return errorResponse("Please enter a valid email address.", 400, env);
     }
 
-    const allowedEmails = parseAllowedEmails(env);
+    const allowedEmails = await resolveAllowedEmails(env);
     if (allowedEmails.size > 0 && !allowedEmails.has(email.toLowerCase())) {
       return errorResponse(
         "This email isn't on the approved list yet. Contact the site owner for access.",
